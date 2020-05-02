@@ -1,17 +1,17 @@
 {
-  "name": "Netflix Sync Party",
+  "name": "Ziggo Sync Party",
   "version": "2020.4.24",
-  "description": "Watch Netflix with friends - no ads, no queues, no login, no lag.",
+  "description": "Watch Ziggo Tv with friends - no ads, no queues, no login, no lag.",
   "permissions": ["declarativeContent", "tabs"],
   "content_scripts": [{
-    "matches": ["http://*.netflix.com/*", "https://*.netflix.com/*"],
-    "js": ["netflix-page-code.js"]
+    "matches": ["https://www.ziggogo.tv/*"],
+    "js": ["ziggo-page-code.js"]
   }],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
   },
-  "page_action": {
+  "browser_action": {
     "default_popup": "popup.html",
     "default_icon": {
       "16": "images/icons/icon16.png",

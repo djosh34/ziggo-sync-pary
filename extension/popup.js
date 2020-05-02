@@ -1,7 +1,11 @@
 function runOnNetflixTab(tab) {
-  const NETFLIX_WATCH_REGEX = /netflix\.com\/watch\/\d*/gi;
-  const WATCH_TRACK_REGEX = /watch\/\d*/gi;
-  const TRACK_ID_REGEX = /\d.*/gi;
+
+  //https://www.ziggogo.tv/nl/movies-series-xl/vod-asset.html/crid%3A~~2F~~2Fupc.com~~2Fd87a213c-1d1b-409b-93b6-fa6649c9e3db/afl-01-the-original/crid%3A~~2F~~2Fupc.com~~2F38400~~2FAZIA0000000000659591/the-original.html#action=watch&offset=563
+
+
+  const ZIGGO_WATCH_REGEX = /ziggogo\.tv\/.*#action=watch*/gi;
+  const WATCH_TRACK_REGEX = /nl\/.*#action=watch*/gi;
+  const STANDARD_URL = "https://www.ziggogo.tv/";
   const GMT_TIMESTAMP_REGEX = /\d.*/gi;
   const SYNC_GMT_TIMESTAMP_PARAM = 'syncGMTTimestampSec';
   const SYNC_GMT_TIMESTAMP_REGEX = new RegExp('[\\?&]' + SYNC_GMT_TIMESTAMP_PARAM + '=([^&#]*)');
@@ -11,6 +15,7 @@ function runOnNetflixTab(tab) {
   const EXTENSION_LINK = 'https://chrome.google.com/webstore/detail/netflix-sync-party/iglgjeoppncgpbbaildpifdnncgbpofl';
 
   const MS_IN_SEC = 1000;
+  const WAIT_TILL_RELOAD = 500;
 
   const url = tab.url;
 
@@ -21,7 +26,7 @@ function runOnNetflixTab(tab) {
 
   let trackID = null;
 
-  if (NETFLIX_WATCH_REGEX.test(url)) {
+  if (ZIGGO_WATCH_REGEX.test(url)) {
 
     // how far ahead actual time is relative to system time
     let currentTimeToActualGMTOffset = 0;
@@ -51,7 +56,10 @@ function runOnNetflixTab(tab) {
       document.getElementById('watch-party-link-synced').addEventListener('click', () => {
         chrome.tabs.update({
           url: url
+        }, () => {
+          chrome.tabs.reload();
         });
+        
       });
 
       document.getElementById('copy-on-synced-url').addEventListener('click', () => {
@@ -60,13 +68,17 @@ function runOnNetflixTab(tab) {
 
 
       // get track ID
-      const trackIDMatch = WATCH_TRACK_REGEX.exec(url)[0];
-      const trackID = TRACK_ID_REGEX.exec(trackIDMatch)[0];
+      const trackID = WATCH_TRACK_REGEX.exec(url)[0];
+
+      console.log("trackid ", trackID);
 
       document.getElementById('leave-party-url').addEventListener('click', () => {
         chrome.tabs.update({
-          url: 'https://www.netflix.com/watch/' + trackID
+          url: STANDARD_URL + trackID
+        }, () => {
+          chrome.tabs.reload();
         });
+        
         window.close();
       });
 
@@ -79,8 +91,7 @@ function runOnNetflixTab(tab) {
       document.getElementById('unsynced-video-view').hidden = false;
 
       // get track ID
-      const trackIDMatch = WATCH_TRACK_REGEX.exec(url)[0];
-      const trackID = TRACK_ID_REGEX.exec(trackIDMatch)[0];
+      const trackID = WATCH_TRACK_REGEX.exec(url)[0];
 
       document.getElementById('copy-extension-link').addEventListener('click', () => {
         navigator.clipboard.writeText(EXTENSION_LINK);
@@ -98,13 +109,16 @@ function runOnNetflixTab(tab) {
         document.getElementById('selected-start-time-gmt').hidden = false;
         document.getElementById('selected-start-time-gmt').innerHTML = new Date(targetGMTTs * MS_IN_SEC).toLocaleString() + ' (Your Time Zone)';
 
-        const watchPartyLink = 'https://www.netflix.com/watch/' + trackID + '?syncGMTTimestampSec=' + targetGMTTs
+        const watchPartyLink = STANDARD_URL + trackID + '&offset=0' + '&syncGMTTimestampSec=' + targetGMTTs;
+        console.log(watchPartyLink);
         document.getElementById('copy-not-on-synced-url').hidden = false;
         document.getElementById('copy-not-on-synced-url').addEventListener('click', () => {
           navigator.clipboard.writeText(watchPartyLink);
         });
         chrome.tabs.update({
-          url: watchPartyLink
+          url: watchPartyLink,
+        }, () => {
+          chrome.tabs.reload();
         });
       });
     }

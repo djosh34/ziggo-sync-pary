@@ -4,7 +4,7 @@ function embeddedCode() {
 
   const MS_IN_SEC = 1000;
 
-  const TIME_BEFORE_RUN = 1.0 * MS_IN_SEC; // Give Netflix this much time to load
+  const TIME_BEFORE_RUN = 1.0 * MS_IN_SEC; // Give Ziggo this much time to load
 
   const SYNC_GMT_TIMESTAMP_PARAM = 'syncGMTTimestampSec';
   const SYNC_GMT_NUM_TIMESTAMP_REGEX = new RegExp("[\\?&]" + SYNC_GMT_TIMESTAMP_PARAM + "=\\d*");
@@ -18,9 +18,6 @@ function embeddedCode() {
   // how far ahead actual time is relative to system time
   let currentTimeToActualGMTOffset = 0;
 
-  //netflix player session Id
-  let playerSessionId;
-
   // try to update currentTimeToActualGMTOffset
   fetch(GMT_URL)
     .then((response) => {
@@ -32,60 +29,54 @@ function embeddedCode() {
       }
     });
   
-  function getVideoPlayer() {
-    return netflix
-      .appContext
-      .state
-      .playerApp
-      .getAPI()
-      .videoPlayer;
-  }
+  
 
   function getPlayer() {
     try {
-      const videoPlayer = getVideoPlayer();
-
-      // Getting player id
-      playerSessionId = videoPlayer
-        .getAllPlayerSessionIds()[0];
-
-      const player = videoPlayer
-        .getVideoPlayerBySessionId(playerSessionId);
-
-      return player;
+      return document.getElementsByTagName("video")[0];
     } catch (err) {
-      alert('Netflix link sync unable to access player on page');
+      alert('Ziggo link sync unable to access player on page');
       console.error(err);
     }
   }
 
   const onSyncFunction = (player, syncGMTTs, syncVideoTargetTs) => {
     //only sync if video is playing
-    if (!playerSessionId || getVideoPlayer().isVideoPlayingForSessionId(playerSessionId)) {
-      const MAX_DESYNC_DELTA = 3 * MS_IN_SEC;
+    if (!getPlayer().paused) {
+      const MAX_DESYNC_DELTA = 3;
       
       // recalculate these
       const currentGMTTs = Date.now() / MS_IN_SEC + currentTimeToActualGMTOffset;
       // time between now and when the video should start
       const timeToVideoStartSec = syncGMTTs - currentGMTTs - syncVideoTargetTs;
+
+      console.log("time to video startSec:",timeToVideoStartSec);
+
       const timeToVideoStartMs = timeToVideoStartSec * MS_IN_SEC;
-      const targetPlayerTime = -1 * timeToVideoStartMs;
+      const targetPlayerTime = -1 * timeToVideoStartMs / MS_IN_SEC;
       
-      const currentPlayerTime = player.getCurrentTime();
+      console.log("targetPlayerTime:",targetPlayerTime);
+
+      const currentPlayerTime = player.currentTime;
       const delta = Math.abs(targetPlayerTime - currentPlayerTime);
+
+      console.log("currentPlayerTime:",currentPlayerTime);
+      console.log("delta:",delta);
+      console.log(" ");
+
       if (delta && delta > MAX_DESYNC_DELTA) {
         // resync
-        player.seek(targetPlayerTime);
+        player.currentTime = targetPlayerTime;
         player.play();
         // alert the viewer if the video has already ended
-        if (player.isEnded()) {
+        if (player.ended) {
           alert('The scheduled video has ended');
         }
       }
     }
   };
 
-  function onNetflixLoad() {
+  function onZiggoLoad() {
 
     const url = window.location.href;
     const syncGMTTs = parseInt(SYNC_GMT_NUM_TIMESTAMP_REGEX.exec(url)[0].split('=')[1]);
@@ -112,7 +103,7 @@ function embeddedCode() {
       // video should not start yet - reset and schedule the start
       setTimeout(function() {
         const player = getPlayer();
-        player.seek(0);
+        player.currentTime = 0;
         player.pause();
         setTimeout(function() {
           player.play();
@@ -125,13 +116,13 @@ function embeddedCode() {
   }
 
   setTimeout(function() {
-    onNetflixLoad();
+    onZiggoLoad();
   }, TIME_BEFORE_RUN);
 
 }
 
 
-// Required so we can access the Netflix player and other page elements
+// Required so we can access the Ziggo player and other page elements
 function embedInPage(fn) {
   const script = document.createElement("script");
   script.text = `(${fn.toString()})();`;
