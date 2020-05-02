@@ -122,6 +122,7 @@ function embeddedCode() {
 }
 
 
+
 // Required so we can access the Ziggo player and other page elements
 function embedInPage(fn) {
   const script = document.createElement("script");
@@ -141,3 +142,12 @@ const url = window.location.href;
 if (SYNC_GMT_TIMESTAMP_REGEX.test(url)) {
   embedInPage(embeddedCode);
 }
+
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    console.log(sender.tab ?
+                "from a content script:" + sender.tab.url :
+                "from the extension");
+    if (request.action == "getPlayer")
+      sendResponse({player: document.getElementsByTagName("video")[0]});
+  });

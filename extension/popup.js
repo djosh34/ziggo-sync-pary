@@ -19,6 +19,8 @@ function runOnZiggoTab(tab) {
 
   const url = tab.url;
 
+  
+
   // hide all possible views, then show the one we want to view
   document.getElementById('synced-video-view').hidden = true
   document.getElementById('unsynced-video-view').hidden = true;
@@ -42,6 +44,8 @@ function runOnZiggoTab(tab) {
         }
       });
 
+    
+
 
     if (SYNC_GMT_TIMESTAMP_REGEX.test(url)) {
       document.getElementById('synced-video-view').hidden = false;
@@ -64,6 +68,43 @@ function runOnZiggoTab(tab) {
 
       document.getElementById('copy-on-synced-url').addEventListener('click', () => {
         navigator.clipboard.writeText(url);
+      });
+
+      document.getElementById('create-new-url').addEventListener('click', () => {
+
+
+      
+
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+          chrome.tabs.sendMessage(tabs[0].id, {action: "getPlayer"}, (response) => {
+            console.log(response.player);
+            player = response.player;
+          });
+        });
+        
+
+        console.log(player);
+
+        document.getElementById('start-time-select-prompt').hidden = true;
+    
+        const startTimeOffset = player.currentTime;
+        const targetGMTTs = Date.now() / MS_IN_SEC + parseInt(startTimeOffset) + currentTimeToActualGMTOffset;
+      
+        document.getElementById('time-selector-dropdown').hidden = true;
+        document.getElementById('selected-start-time-gmt').hidden = false;
+        document.getElementById('selected-start-time-gmt').innerHTML = new Date(targetGMTTs * MS_IN_SEC).toLocaleString() + ' (Your Time Zone)';
+      
+        const watchPartyLink = STANDARD_URL + trackID + '&offset=0' + '&syncGMTTimestampSec=' + targetGMTTs;
+        console.log(watchPartyLink);
+        document.getElementById('copy-not-on-synced-url').hidden = false;
+        document.getElementById('copy-not-on-synced-url').addEventListener('click', () => {
+          navigator.clipboard.writeText(watchPartyLink);
+        });
+        chrome.tabs.update({
+          url: watchPartyLink,
+        }, () => {
+          chrome.tabs.reload();
+        });
       });
 
 
@@ -101,14 +142,14 @@ function runOnZiggoTab(tab) {
 
       document.getElementById('time-selector-dropdown').addEventListener('change', () => {
         document.getElementById('start-time-select-prompt').hidden = true;
-
+    
         const startTimeOffset = document.getElementById('time-selector-dropdown').value;
         const targetGMTTs = Date.now() / MS_IN_SEC + parseInt(startTimeOffset) + currentTimeToActualGMTOffset;
-
+      
         document.getElementById('time-selector-dropdown').hidden = true;
         document.getElementById('selected-start-time-gmt').hidden = false;
         document.getElementById('selected-start-time-gmt').innerHTML = new Date(targetGMTTs * MS_IN_SEC).toLocaleString() + ' (Your Time Zone)';
-
+      
         const watchPartyLink = STANDARD_URL + trackID + '&offset=0' + '&syncGMTTimestampSec=' + targetGMTTs;
         console.log(watchPartyLink);
         document.getElementById('copy-not-on-synced-url').hidden = false;
@@ -126,6 +167,10 @@ function runOnZiggoTab(tab) {
     document.getElementById('non-video-view').hidden = false;
   }
 }
+
+
+
+
 
 chrome.tabs.query({
   active: true,
