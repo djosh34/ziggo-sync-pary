@@ -1,4 +1,4 @@
-function runOnNetflixTab(tab) {
+function runOnZiggoTab(tab) {
 
   //https://www.ziggogo.tv/nl/movies-series-xl/vod-asset.html/crid%3A~~2F~~2Fupc.com~~2Fd87a213c-1d1b-409b-93b6-fa6649c9e3db/afl-01-the-original/crid%3A~~2F~~2Fupc.com~~2F38400~~2FAZIA0000000000659591/the-original.html#action=watch&offset=563
 
@@ -12,7 +12,7 @@ function runOnNetflixTab(tab) {
 
   const USE_NETWORK_TIME = false; // TODO: FIX WITHIN POPUP
   const GMT_URL = 'https://worldtimeapi.org/api/timezone/Europe/London';
-  const EXTENSION_LINK = 'https://chrome.google.com/webstore/detail/netflix-sync-party/iglgjeoppncgpbbaildpifdnncgbpofl';
+  const EXTENSION_LINK = '';
 
   const MS_IN_SEC = 1000;
   const WAIT_TILL_RELOAD = 500;
@@ -134,12 +134,12 @@ chrome.tabs.query({
   // attach the extension logic to currently opened tab
   const targetTab = tabs[0];
   const targetTabID = targetTab.id;
-  runOnNetflixTab(targetTab);
+  runOnZiggoTab(targetTab);
 
   // whenever the url of this tab changes, rerun this
   chrome.tabs.onUpdated.addListener((tabID, changeInfo, tab) => {
     if (tabID === targetTabID && changeInfo.status === 'complete') {
-      runOnNetflixTab(tab);
+      runOnZiggoTab(tab);
     }
   });
 });
