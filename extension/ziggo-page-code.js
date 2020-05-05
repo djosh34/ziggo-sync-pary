@@ -4,7 +4,7 @@ function embeddedCode() {
 
   const MS_IN_SEC = 1000;
 
-  const TIME_BEFORE_RUN = 1.0 * MS_IN_SEC; // Give Ziggo this much time to load
+  const TIME_BEFORE_RUN = 5.0 * MS_IN_SEC; // Give Ziggo this much time to load
 
   const SYNC_GMT_TIMESTAMP_PARAM = 'syncGMTTimestampSec';
   const SYNC_GMT_NUM_TIMESTAMP_REGEX = new RegExp("[\\?&]" + SYNC_GMT_TIMESTAMP_PARAM + "=\\d*");
